@@ -57,8 +57,9 @@ func (uc *GetMonsterRatingsUsecaseInteractor) Execute(ctx context.Context, input
 		})
 	}
 
+	url := game8Monster.URL().Value()
 	game8MonsterOutput := Game8Monster{
-		URL:             game8Monster.URL().Value().String(),
+		URL:             url.String(),
 		OriginMonsterNo: game8Monster.OriginMonsterNo().Value(),
 		Scores:          game8MonsterScoresOutput,
 	}
