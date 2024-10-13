@@ -27,6 +27,10 @@ func NewMonsterSourceData(
 	}
 }
 
+func (m *MonsterSourceData) ID() vo.ID {
+	return m.id
+}
+
 func (m *MonsterSourceData) No() vo.No {
 	return m.no
 }
@@ -37,6 +41,10 @@ func (m *MonsterSourceData) Name() vo.MonsterName {
 
 func (m *MonsterSourceData) BaseNo() *vo.No {
 	return m.baseNo
+}
+
+func (m *MonsterSourceData) SetID(id vo.ID) {
+	m.id = id
 }
 
 func (m *MonsterSourceData) SetName(name vo.MonsterName) {

@@ -23,6 +23,10 @@ func NewGame8Monster(
 	}
 }
 
+func (m *Game8Monster) ID() vo.ID {
+	return m.id
+}
+
 func (m *Game8Monster) OriginMonsterNo() vo.No {
 	return m.originMonsterNo
 }

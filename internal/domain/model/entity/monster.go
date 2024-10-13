@@ -23,12 +23,24 @@ func NewMonster(
 	}
 }
 
+func (m *Monster) ID() vo.ID {
+	return m.id
+}
+
 func (m *Monster) No() vo.No {
 	return m.no
 }
 
 func (m *Monster) Name() vo.MonsterName {
 	return m.name
+}
+
+func (m *Monster) OriginMonster() *Monster {
+	return m.originMonster
+}
+
+func (m *Monster) SetID(id vo.ID) {
+	m.id = id
 }
 
 func (m *Monster) SetName(name vo.MonsterName) {
