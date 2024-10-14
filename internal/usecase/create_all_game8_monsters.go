@@ -42,7 +42,7 @@ func (uc *CreateAllGame8MonstersUsecaseInteractor) Execute(ctx context.Context) 
 	}
 
 	for _, url := range urls {
-		fetchedGame8Monster, err := uc.game8MonsterFetcher.Fetch(ctx, *url)
+		fetchedGame8Monster, err := uc.game8MonsterFetcher.Fetch(ctx, url)
 		if err != nil {
 			return err
 		}

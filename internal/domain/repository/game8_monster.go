@@ -14,7 +14,7 @@ type Game8MonsterRepository interface {
 }
 
 type Game8MonsterURLLoader interface {
-	LoadAll(ctx context.Context) ([]*vo.URL, error)
+	LoadAll(ctx context.Context) ([]vo.URL, error)
 }
 
 type Game8MonsterFetcher interface {
