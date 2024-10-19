@@ -14,7 +14,7 @@ func (e ErrURLValidation) Error() string {
 }
 
 type URL struct {
-	url url.URL
+	url *url.URL
 }
 
 // NewURL コンストラクタ：文字列からURLを作成し、構文が正しいかをチェック
@@ -23,10 +23,10 @@ func NewURL(rawURL string) (URL, error) {
 	if err != nil {
 		return URL{}, ErrURLValidation{Err: err}
 	}
-	return URL{url: *parsedURL}, nil
+	return URL{url: parsedURL}, nil
 }
 
 // 現状はURLの値をそのまま返す
-func (u URL) Value() url.URL {
+func (u URL) Value() *url.URL {
 	return u.url
 }

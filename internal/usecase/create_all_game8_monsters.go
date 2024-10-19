@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/iotassss/puzzdra-monster-rating/internal/domain/repository"
+	"github.com/iotassss/puzzdra-monster-rating/internal/domain/service"
 )
 
 type CreateAllGame8MonstersPresenter interface {
@@ -15,23 +16,26 @@ type CreateAllGame8MonstersUsecase interface {
 }
 
 type CreateAllGame8MonstersUsecaseInteractor struct {
-	presenter             CreateAllGame8MonstersPresenter
-	game8MonsterRepo      repository.Game8MonsterRepository
-	game8MonsterURLLoader repository.Game8MonsterURLLoader
-	game8MonsterFetcher   repository.Game8MonsterFetcher
+	presenter                     CreateAllGame8MonstersPresenter
+	game8MonsterRepo              repository.Game8MonsterRepository
+	game8MonsterURLLoader         repository.Game8MonsterURLLoader
+	game8MonsterSourceDataFetcher repository.Game8MonsterSourceDataFetcher
+	ConvertGame8SourceData        service.ConvertGame8SourceData
 }
 
 func NewCreateAllGame8MonstersUsecaseInteractor(
 	presenter CreateAllGame8MonstersPresenter,
 	game8MonsterRepo repository.Game8MonsterRepository,
 	game8MonsterURLLoader repository.Game8MonsterURLLoader,
-	game8MonsterFetcher repository.Game8MonsterFetcher,
+	game8MonsterSourceDataFetcher repository.Game8MonsterSourceDataFetcher,
+	convertGame8SourceData service.ConvertGame8SourceData,
 ) *CreateAllGame8MonstersUsecaseInteractor {
 	return &CreateAllGame8MonstersUsecaseInteractor{
-		presenter:             presenter,
-		game8MonsterRepo:      game8MonsterRepo,
-		game8MonsterURLLoader: game8MonsterURLLoader,
-		game8MonsterFetcher:   game8MonsterFetcher,
+		presenter:                     presenter,
+		game8MonsterRepo:              game8MonsterRepo,
+		game8MonsterURLLoader:         game8MonsterURLLoader,
+		game8MonsterSourceDataFetcher: game8MonsterSourceDataFetcher,
+		ConvertGame8SourceData:        convertGame8SourceData,
 	}
 }
 
@@ -42,7 +46,11 @@ func (uc *CreateAllGame8MonstersUsecaseInteractor) Execute(ctx context.Context) 
 	}
 
 	for _, url := range urls {
-		fetchedGame8Monster, err := uc.game8MonsterFetcher.Fetch(ctx, url)
+		game8MonsterSourceData, err := uc.game8MonsterSourceDataFetcher.Fetch(ctx, url)
+		if err != nil {
+			return err
+		}
+		fetchedGame8Monster, err := uc.ConvertGame8SourceData.Execute(ctx, game8MonsterSourceData)
 		if err != nil {
 			return err
 		}

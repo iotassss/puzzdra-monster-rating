@@ -8,6 +8,10 @@ import (
 	"github.com/iotassss/puzzdra-monster-rating/internal/domain/repository"
 )
 
+type FindOriginMonsterByNo interface {
+	Execute(ctx context.Context, no vo.No) (*entity.Monster, error)
+}
+
 type FindOriginMonsterByNoService struct {
 	monsterRepository           repository.MonsterRepository
 	monsterSourceDataRepository repository.MonsterSourceDataRepository
