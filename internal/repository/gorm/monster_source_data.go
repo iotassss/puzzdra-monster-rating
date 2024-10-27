@@ -12,7 +12,7 @@ type MonsterSourceData struct {
 	gorm.Model
 	No     int    `gorm:"unique;not null"`
 	Name   string `gorm:"size:255;not null"`
-	BaseNo int    `gorm:"not null"`
+	BaseNo *int
 }
 
 type MonsterSourceDataRepository struct {
@@ -64,25 +64,45 @@ func (r *MonsterSourceDataRepository) Exists(ctx context.Context, no vo.No) (boo
 }
 
 func (r *MonsterSourceDataRepository) Save(ctx context.Context, monsterSourceData *entity.MonsterSourceData) error {
-	gormMonsterSourceData := MonsterSourceData{
-		Model: gorm.Model{
-			ID: uint(monsterSourceData.ID().Value()),
-		},
-		No:     monsterSourceData.No().Value(),
-		Name:   monsterSourceData.Name().Value(),
-		BaseNo: monsterSourceData.BaseNo().Value(),
-	}
-
-	if err := r.db.WithContext(ctx).Save(&gormMonsterSourceData).Error; err != nil {
+	// check if the record exists
+	exists, err := r.Exists(ctx, monsterSourceData.No())
+	if err != nil {
 		return err
 	}
 
-	if monsterSourceData.ID().Value() == 0 {
-		assignedID, err := vo.NewID(int(gormMonsterSourceData.ID))
-		if err != nil {
+	if exists {
+		var gormMonsterSourceData *MonsterSourceData
+		if err := r.db.WithContext(ctx).
+			Where("no = ?", monsterSourceData.No().Value()).
+			First(&gormMonsterSourceData).Error; err != nil {
 			return err
 		}
-		monsterSourceData.SetID(assignedID)
+
+		gormMonsterSourceData.No = monsterSourceData.No().Value()
+		gormMonsterSourceData.Name = monsterSourceData.Name().Value()
+		if monsterSourceData.BaseNo() != nil {
+			baseNoValue := monsterSourceData.BaseNo().Value()
+			gormMonsterSourceData.BaseNo = &baseNoValue
+		} else {
+			gormMonsterSourceData.BaseNo = nil
+		}
+
+		if err := r.db.WithContext(ctx).Save(&gormMonsterSourceData).Error; err != nil {
+			return err
+		}
+	} else {
+		gormMonsterSourceData := MonsterSourceData{
+			No:   monsterSourceData.No().Value(),
+			Name: monsterSourceData.Name().Value(),
+		}
+		if monsterSourceData.BaseNo() != nil {
+			baseNoValue := monsterSourceData.BaseNo().Value()
+			gormMonsterSourceData.BaseNo = &baseNoValue
+		}
+
+		if err := r.db.WithContext(ctx).Create(&gormMonsterSourceData).Error; err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -105,12 +125,16 @@ func (r *MonsterSourceDataRepository) convertToEntity(gormMonsterSourceData *Mon
 	if err != nil {
 		return nil, err
 	}
-	baseNo, err := vo.NewNo(gormMonsterSourceData.BaseNo)
-	if err != nil {
-		return nil, err
+	var baseNo *vo.No
+	if gormMonsterSourceData.BaseNo != nil {
+		baseNoVO, err := vo.NewNo(*gormMonsterSourceData.BaseNo)
+		if err != nil {
+			return nil, err
+		}
+		baseNo = &baseNoVO
 	}
 
-	monsterSourceData := entity.NewMonsterSourceData(id, no, name, &baseNo)
+	monsterSourceData := entity.NewMonsterSourceData(id, no, name, baseNo)
 
 	return monsterSourceData, nil
 }

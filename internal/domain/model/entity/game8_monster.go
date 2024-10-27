@@ -35,6 +35,10 @@ func (m *Game8Monster) URL() vo.URL {
 	return m.url
 }
 
+func (m *Game8Monster) SetID(id vo.ID) {
+	m.id = id
+}
+
 func (m *Game8Monster) Scores() []*Game8MonsterScore {
 	return m.scores
 }

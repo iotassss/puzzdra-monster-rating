@@ -14,7 +14,7 @@ type Monster struct {
 	No              int    `gorm:"unique;not null"`
 	Name            string `gorm:"size:255;not null"`
 	OriginMonsterID *int
-	OriginMonster   *Monster `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	OriginMonster   *Monster `gorm:"foreignKey:OriginMonsterID"`
 }
 
 type MonsterRepository struct {
@@ -62,20 +62,36 @@ func (r *MonsterRepository) Save(ctx context.Context, monster *entity.Monster) e
 		*originMonsterID = int(monster.OriginMonster().ID().Value())
 	}
 
-	gormMonster := Monster{
-		Model: gorm.Model{
-			ID: uint(monster.ID().Value()),
-		},
-		No:              monster.No().Value(),
-		Name:            monster.Name().Value(),
-		OriginMonsterID: originMonsterID,
-	}
-
-	if err := r.db.WithContext(ctx).Save(&gormMonster).Error; err != nil {
+	exists, err := r.Exists(ctx, monster.No())
+	if err != nil {
 		return err
 	}
 
-	if monster.ID().Value() == 0 {
+	if exists {
+		var gormMonster Monster
+		if err := r.db.WithContext(ctx).
+			Where("no = ?", monster.No().Value()).
+			First(&gormMonster).Error; err != nil {
+			return err
+		}
+
+		gormMonster.Name = monster.Name().Value()
+		gormMonster.OriginMonsterID = originMonsterID
+
+		if err := r.db.WithContext(ctx).Save(&gormMonster).Error; err != nil {
+			return err
+		}
+	} else {
+		gormMonster := Monster{
+			No:              monster.No().Value(),
+			Name:            monster.Name().Value(),
+			OriginMonsterID: originMonsterID,
+		}
+
+		if err := r.db.WithContext(ctx).Create(&gormMonster).Error; err != nil {
+			return err
+		}
+
 		assignedID, err := vo.NewID(int(gormMonster.ID))
 		if err != nil {
 			return err

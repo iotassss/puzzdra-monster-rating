@@ -7,15 +7,23 @@ import (
 	"github.com/iotassss/puzzdra-monster-rating/internal/domain/model/vo"
 )
 
-type ConvertGame8SourceData struct {
-	findOriginMonsterByNoService FindOriginMonsterByNo
+type ConvertGame8SourceDataService interface {
+	Execute(ctx context.Context, game8MonsterSourceData *entity.Game8MonsterSourceData) (*entity.Game8Monster, error)
 }
 
-func NewConvertGame8SourceData() *ConvertGame8SourceData {
-	return &ConvertGame8SourceData{}
+type ConvertGame8SourceDataSV struct {
+	findOriginMonsterByNoService FindOriginMonsterByNoService
 }
 
-func (s *ConvertGame8SourceData) Execute(
+func NewConvertGame8SourceDataSV(
+	findOriginMonsterByNoService FindOriginMonsterByNoService,
+) *ConvertGame8SourceDataSV {
+	return &ConvertGame8SourceDataSV{
+		findOriginMonsterByNoService: findOriginMonsterByNoService,
+	}
+}
+
+func (s *ConvertGame8SourceDataSV) Execute(
 	ctx context.Context,
 	game8MonsterSourceData *entity.Game8MonsterSourceData,
 ) (*entity.Game8Monster, error) {
@@ -34,9 +42,17 @@ func (s *ConvertGame8SourceData) Execute(
 			sourceDataScore.AssistPoint(),
 		))
 	}
+
+	var originMonsterNo vo.No
+	if originMonster == nil {
+		originMonsterNo = game8MonsterSourceData.No()
+	} else {
+		originMonsterNo = originMonster.No()
+	}
+
 	fetchedGame8Monster := entity.NewGame8Monster(
 		vo.NewTemporaryID(),
-		originMonster.No(),
+		originMonsterNo,
 		game8MonsterSourceData.URL(),
 		scores,
 	)

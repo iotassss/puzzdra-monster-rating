@@ -8,12 +8,6 @@ import (
 	"github.com/iotassss/puzzdra-monster-rating/internal/domain/model/vo"
 )
 
-// 実装するインターフェース
-
-// type Game8MonsterURLLoader interface {
-// 	LoadAll(ctx context.Context) ([]vo.URL, error)
-// }
-
 type Game8MonsterURLLoader struct {
 	urlListFilePath string
 }

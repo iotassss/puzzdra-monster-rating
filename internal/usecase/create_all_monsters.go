@@ -45,42 +45,64 @@ func (uc *CreateAllMonstersUsecaseInteractor) Execute(ctx context.Context) error
 		return err
 	}
 
+	// baseNoがnilのモンスターを優先で作成する
 	for _, monsterSourceData := range monsterSourceDataList {
-		var originMonster *entity.Monster
-		originMonster, err = uc.findOriginMonsterByNoService.Execute(ctx, monsterSourceData.No())
-		if err != nil {
-			return err
-		}
-
-		exists, err := uc.monsterRepo.Exists(ctx, monsterSourceData.No())
-		if err != nil {
-			return err
-		}
-
-		if exists {
-			monster, err := uc.monsterRepo.FindByNo(ctx, monsterSourceData.No())
-			if err != nil {
-				return err
-			}
-			monster.SetName(monsterSourceData.Name())
-			monster.SetOriginMonster(originMonster)
-			err = uc.monsterRepo.Save(ctx, monster)
-			if err != nil {
-				return err
-			}
-		} else {
-			monster := entity.NewMonster(
-				vo.NewTemporaryID(),
-				monsterSourceData.No(),
-				monsterSourceData.Name(),
-				originMonster,
-			)
-			err = uc.monsterRepo.Save(ctx, monster)
+		if monsterSourceData.BaseNo() == nil {
+			err = uc.makeAndSaveMonster(ctx, monsterSourceData)
 			if err != nil {
 				return err
 			}
 		}
 	}
 
+	for _, monsterSourceData := range monsterSourceDataList {
+		err = uc.makeAndSaveMonster(ctx, monsterSourceData)
+		if err != nil {
+			return err
+		}
+	}
+
 	return uc.presenter.Present()
+}
+
+func (uc *CreateAllMonstersUsecaseInteractor) makeAndSaveMonster(
+	ctx context.Context,
+	monsterSourceData *entity.MonsterSourceData,
+) error {
+	var originMonster *entity.Monster
+	originMonster, err := uc.findOriginMonsterByNoService.Execute(ctx, monsterSourceData.No())
+	if err != nil {
+		return err
+	}
+
+	exists, err := uc.monsterRepo.Exists(ctx, monsterSourceData.No())
+	if err != nil {
+		return err
+	}
+
+	if exists {
+		monster, err := uc.monsterRepo.FindByNo(ctx, monsterSourceData.No())
+		if err != nil {
+			return err
+		}
+		monster.SetName(monsterSourceData.Name())
+		monster.SetOriginMonster(originMonster)
+		err = uc.monsterRepo.Save(ctx, monster)
+		if err != nil {
+			return err
+		}
+	} else {
+		monster := entity.NewMonster(
+			vo.NewTemporaryID(),
+			monsterSourceData.No(),
+			monsterSourceData.Name(),
+			originMonster,
+		)
+		err = uc.monsterRepo.Save(ctx, monster)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

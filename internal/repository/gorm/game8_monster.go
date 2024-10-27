@@ -74,17 +74,48 @@ func (r *Game8MonsterRepository) Save(ctx context.Context, game8Monster *entity.
 	}
 
 	url := game8Monster.URL().Value()
-	gormGame8Monster := Game8Monster{
-		Model: gorm.Model{
-			ID: uint(game8Monster.ID().Value()),
-		},
-		OriginMonsterNo: game8Monster.OriginMonsterNo().Value(),
-		URL:             url.String(),
-		Scores:          scores,
+
+	exists, err := r.Exists(ctx, game8Monster.OriginMonsterNo())
+	if err != nil {
+		return err
 	}
 
-	if err := r.db.WithContext(ctx).Save(&gormGame8Monster).Error; err != nil {
-		return err
+	if exists {
+		var gormGame8Monster *Game8Monster
+		if err := r.db.WithContext(ctx).
+			Where("origin_monster_no = ?", game8Monster.OriginMonsterNo().Value()).
+			First(&gormGame8Monster).Error; err != nil {
+			return err
+		}
+
+		if err := r.db.WithContext(ctx).
+			Where("game8_monster_id = ?", gormGame8Monster.ID).
+			Delete(&gormGame8Monster.Scores).Error; err != nil {
+			return err
+		}
+
+		gormGame8Monster.URL = url.String()
+		gormGame8Monster.Scores = scores
+
+		if err := r.db.WithContext(ctx).Save(&gormGame8Monster).Error; err != nil {
+			return err
+		}
+	} else {
+		gormGame8Monster := Game8Monster{
+			OriginMonsterNo: game8Monster.OriginMonsterNo().Value(),
+			URL:             url.String(),
+			Scores:          scores,
+		}
+
+		if err := r.db.WithContext(ctx).Create(&gormGame8Monster).Error; err != nil {
+			return err
+		}
+
+		assignedId, err := vo.NewID(int(gormGame8Monster.ID))
+		if err != nil {
+			return err
+		}
+		game8Monster.SetID(assignedId)
 	}
 
 	return nil

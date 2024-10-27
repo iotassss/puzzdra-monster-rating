@@ -40,27 +40,9 @@ func (uc *CreateAllMonsterSourceDataUsecaseInteractor) Execute(ctx context.Conte
 	}
 
 	for _, rawMonsterSourceData := range rawMonsterSourceDataList {
-		exists, err := uc.monsterSourceDataRepo.Exists(ctx, rawMonsterSourceData.No())
+		err = uc.monsterSourceDataRepo.Save(ctx, rawMonsterSourceData)
 		if err != nil {
 			return err
-		}
-
-		if exists {
-			monsterSourceData, err := uc.monsterSourceDataRepo.FindByNo(ctx, rawMonsterSourceData.No())
-			if err != nil {
-				return err
-			}
-			monsterSourceData.SetName(rawMonsterSourceData.Name())
-			monsterSourceData.SetBaseNo(rawMonsterSourceData.BaseNo())
-			err = uc.monsterSourceDataRepo.Save(ctx, monsterSourceData)
-			if err != nil {
-				return err
-			}
-		} else {
-			err = uc.monsterSourceDataRepo.Save(ctx, rawMonsterSourceData)
-			if err != nil {
-				return err
-			}
 		}
 	}
 

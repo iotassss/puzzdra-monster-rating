@@ -2,6 +2,7 @@ package scraper
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"regexp"
 	"strconv"
@@ -14,37 +15,60 @@ import (
 	"github.com/iotassss/puzzdra-monster-rating/internal/domain/model/vo"
 )
 
-const (
-	userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36"
-)
-
 type Game8MonsterScraper struct {
 	logger        *slog.Logger
-	timeoutSecond *int
+	timeoutSecond int
+	waitSecond    int
+	ignoreWait    bool
+	userAgent     string
+	debug         bool
 }
 
-func NewGame8MonsterScraper(
-	logger *slog.Logger,
-	timeout *int,
-) *Game8MonsterScraper {
-	if timeout == nil {
-		defaultTimeout := 5
-		timeout = &defaultTimeout
+type Game8MonsterScraperConfig struct {
+	Logger        *slog.Logger
+	TimeoutSecond int
+	WaitSecond    int
+	IgnoreWait    bool
+	UserAgent     string
+	Debug         bool
+}
+
+func NewGame8MonsterScraper(config *Game8MonsterScraperConfig) *Game8MonsterScraper {
+	timeoutSecond := config.TimeoutSecond
+	if timeoutSecond <= 0 {
+		timeoutSecond = 5
+	}
+	waitSeconds := config.WaitSecond
+	if waitSeconds <= 0 {
+		waitSeconds = 2
 	}
 
 	return &Game8MonsterScraper{
-		logger:        logger,
-		timeoutSecond: timeout,
+		logger:        config.Logger,
+		timeoutSecond: timeoutSecond,
+		waitSecond:    waitSeconds,
+		ignoreWait:    config.IgnoreWait,
+		userAgent:     config.UserAgent,
+		debug:         config.Debug,
 	}
 }
 
 func (s *Game8MonsterScraper) Fetch(ctx context.Context, url vo.URL) (*entity.Game8MonsterSourceData, error) {
-	result := &game8MonsterScrapingResult{}
+	if !s.ignoreWait {
+		time.Sleep(time.Duration(s.waitSecond) * time.Second)
+	}
+	if s.debug {
+		fmt.Printf("%s\n", url.Value())
+	}
+
+	result := &game8MonsterScrapingResult{
+		url: url.Value().String(),
+	}
 
 	c := colly.NewCollector(
-		colly.UserAgent(userAgent),
+		colly.UserAgent(s.userAgent),
 	)
-	c.SetRequestTimeout(time.Duration(*s.timeoutSecond) * time.Second)
+	c.SetRequestTimeout(time.Duration(s.timeoutSecond) * time.Second)
 
 	c.OnError(func(r *colly.Response, err error) {
 		s.logger.Error("Scraping error", slog.Any("error", err))

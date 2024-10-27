@@ -20,7 +20,7 @@ type CreateAllGame8MonstersUsecaseInteractor struct {
 	game8MonsterRepo              repository.Game8MonsterRepository
 	game8MonsterURLLoader         repository.Game8MonsterURLLoader
 	game8MonsterSourceDataFetcher repository.Game8MonsterSourceDataFetcher
-	ConvertGame8SourceData        service.ConvertGame8SourceData
+	convertGame8SourceDataService service.ConvertGame8SourceDataService
 }
 
 func NewCreateAllGame8MonstersUsecaseInteractor(
@@ -28,14 +28,14 @@ func NewCreateAllGame8MonstersUsecaseInteractor(
 	game8MonsterRepo repository.Game8MonsterRepository,
 	game8MonsterURLLoader repository.Game8MonsterURLLoader,
 	game8MonsterSourceDataFetcher repository.Game8MonsterSourceDataFetcher,
-	convertGame8SourceData service.ConvertGame8SourceData,
+	convertGame8SourceDataService service.ConvertGame8SourceDataService,
 ) *CreateAllGame8MonstersUsecaseInteractor {
 	return &CreateAllGame8MonstersUsecaseInteractor{
 		presenter:                     presenter,
 		game8MonsterRepo:              game8MonsterRepo,
 		game8MonsterURLLoader:         game8MonsterURLLoader,
 		game8MonsterSourceDataFetcher: game8MonsterSourceDataFetcher,
-		ConvertGame8SourceData:        convertGame8SourceData,
+		convertGame8SourceDataService: convertGame8SourceDataService,
 	}
 }
 
@@ -46,11 +46,17 @@ func (uc *CreateAllGame8MonstersUsecaseInteractor) Execute(ctx context.Context) 
 	}
 
 	for _, url := range urls {
+		// for index, url := range urls {
+		// 	// デバッグのため3件までに制限
+		// 	if index > 2 {
+		// 		break
+		// 	}
+
 		game8MonsterSourceData, err := uc.game8MonsterSourceDataFetcher.Fetch(ctx, url)
 		if err != nil {
 			return err
 		}
-		fetchedGame8Monster, err := uc.ConvertGame8SourceData.Execute(ctx, game8MonsterSourceData)
+		fetchedGame8Monster, err := uc.convertGame8SourceDataService.Execute(ctx, game8MonsterSourceData)
 		if err != nil {
 			return err
 		}
