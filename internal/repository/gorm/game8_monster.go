@@ -35,8 +35,12 @@ func NewGame8MonsterRepository(db *gorm.DB) *Game8MonsterRepository {
 func (r *Game8MonsterRepository) FindByNo(ctx context.Context, no vo.No) (*entity.Game8Monster, error) {
 	var gormGame8Monster *Game8Monster
 	if err := r.db.WithContext(ctx).
+		Preload("Scores").
 		Where("origin_monster_no = ?", no.Value()).
 		First(&gormGame8Monster).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
 		return nil, err
 	}
 

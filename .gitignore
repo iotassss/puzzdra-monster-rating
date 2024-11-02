@@ -3,3 +3,4 @@ bin/
 data/
 TODO
 app.log
+.vscode/

@@ -3,7 +3,6 @@ package scraper
 import (
 	"context"
 	"fmt"
-	"log/slog"
 	"os"
 	"regexp"
 
@@ -12,7 +11,6 @@ import (
 )
 
 type Game8MonsterURLScraper struct {
-	logger        *slog.Logger
 	timeoutSecond int
 	userAgent     string
 	outputFile    string
@@ -20,7 +18,6 @@ type Game8MonsterURLScraper struct {
 }
 
 type Game8MonsterURLScraperConfig struct {
-	Logger        *slog.Logger
 	TimeoutSecond int
 	UserAgent     string
 	OutputFile    string
@@ -34,7 +31,6 @@ func NewGame8MonsterURLScraper(config *Game8MonsterURLScraperConfig) *Game8Monst
 	}
 
 	return &Game8MonsterURLScraper{
-		logger:        config.Logger,
 		timeoutSecond: timeoutSecond,
 		userAgent:     config.UserAgent,
 		outputFile:    config.OutputFile,

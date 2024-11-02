@@ -16,7 +16,6 @@ import (
 )
 
 type Game8MonsterScraper struct {
-	logger        *slog.Logger
 	timeoutSecond int
 	waitSecond    int
 	ignoreWait    bool
@@ -25,7 +24,6 @@ type Game8MonsterScraper struct {
 }
 
 type Game8MonsterScraperConfig struct {
-	Logger        *slog.Logger
 	TimeoutSecond int
 	WaitSecond    int
 	IgnoreWait    bool
@@ -44,7 +42,6 @@ func NewGame8MonsterScraper(config *Game8MonsterScraperConfig) *Game8MonsterScra
 	}
 
 	return &Game8MonsterScraper{
-		logger:        config.Logger,
 		timeoutSecond: timeoutSecond,
 		waitSecond:    waitSeconds,
 		ignoreWait:    config.IgnoreWait,
@@ -71,7 +68,7 @@ func (s *Game8MonsterScraper) Fetch(ctx context.Context, url vo.URL) (*entity.Ga
 	c.SetRequestTimeout(time.Duration(s.timeoutSecond) * time.Second)
 
 	c.OnError(func(r *colly.Response, err error) {
-		s.logger.Error("Scraping error", slog.Any("error", err))
+		slog.Error("Scraping error", slog.Any("error", err))
 	})
 
 	// No取得
@@ -104,7 +101,7 @@ func (s *Game8MonsterScraper) Fetch(ctx context.Context, url vo.URL) (*entity.Ga
 		// 保存
 		no, err := strconv.Atoi(noStr)
 		if err != nil {
-			s.logger.Error("Failed to convert string to int", slog.String("noStr", noStr), slog.Any("error", err))
+			slog.Error("Failed to convert string to int", slog.String("noStr", noStr), slog.Any("error", err))
 			return
 		}
 
@@ -169,13 +166,13 @@ func (s *Game8MonsterScraper) Fetch(ctx context.Context, url vo.URL) (*entity.Ga
 
 	err := c.Visit(url.Value().String())
 	if err != nil {
-		s.logger.Error("Failed to visit page", slog.String("url", url.Value().String()), slog.Any("error", err))
+		slog.Error("Failed to visit page", slog.String("url", url.Value().String()), slog.Any("error", err))
 		return nil, err
 	}
 
 	game8Monster, err := result.toEntity()
 	if err != nil {
-		s.logger.Error("Failed to convert scraping result to entity", slog.Any("error", err))
+		slog.Error("Failed to convert scraping result to entity", slog.Any("error", err))
 		return nil, err
 	}
 

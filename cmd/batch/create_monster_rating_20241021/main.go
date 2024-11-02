@@ -22,17 +22,21 @@ const (
 
 func main() {
 	// logger file
-	file, err := os.OpenFile("app.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	loggerFile, err := os.OpenFile("app.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		slog.Error("failed to open log file", slog.Any("error", err))
 		return
 	}
-	defer file.Close()
+	defer loggerFile.Close()
+
+	handler := slog.NewJSONHandler(loggerFile, nil)
+	logger := slog.New(handler)
+	slog.SetDefault(logger)
 
 	// app
-	app, err := cli.New20241019App(file, true)
+	app, err := cli.New20241019App(true)
 	if err != nil {
-		app.Logger.Error("app initialization failed", slog.Any("error", err))
+		slog.Error("app initialization failed", slog.Any("error", err))
 		return
 	}
 
@@ -46,14 +50,12 @@ func main() {
 		"data/monsters.json",
 		true,
 		"https://padmdb.rainbowsite.net/listJson/monster_data.json",
-		app.Logger,
 		true,
 	)
 	game8MonsterURLLoader := loader.NewGame8MonsterURLLoader(game8MonsterURLOutputFile)
 
 	// scraper
 	scraperConfig := &scraper.Game8MonsterScraperConfig{
-		Logger:        app.Logger,
 		TimeoutSecond: 5,
 		WaitSecond:    2,
 		UserAgent:     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36",
@@ -61,7 +63,6 @@ func main() {
 	}
 	game8MonsterSourceDataFetcher := scraper.NewGame8MonsterScraper(scraperConfig)
 	urlScraperConfig := &scraper.Game8MonsterURLScraperConfig{
-		Logger:        app.Logger,
 		TimeoutSecond: 5,
 		UserAgent:     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36",
 		OutputFile:    game8MonsterURLOutputFile,

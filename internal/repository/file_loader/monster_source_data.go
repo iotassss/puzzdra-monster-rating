@@ -26,7 +26,6 @@ type MonsterSourceDataLoader struct {
 	monsterJSONFilePath string
 	refreshJSONFile     bool
 	monsterJsonURL      string
-	logger              *slog.Logger
 	debug               bool
 }
 
@@ -34,14 +33,12 @@ func NewMonsterSourceDataLoader(
 	monsterJSONFilePath string,
 	refreshJSONFile bool,
 	monsterJsonURL string,
-	logger *slog.Logger,
 	debug bool,
 ) *MonsterSourceDataLoader {
 	return &MonsterSourceDataLoader{
 		monsterJSONFilePath: monsterJSONFilePath,
 		refreshJSONFile:     refreshJSONFile,
 		monsterJsonURL:      monsterJsonURL,
-		logger:              logger,
 		debug:               debug,
 	}
 }
@@ -70,16 +67,16 @@ jsonファイルの形式は以下のフィールドを持つオブジェクト�
 func (l *MonsterSourceDataLoader) LoadAll(ctx context.Context) ([]*entity.MonsterSourceData, error) {
 	if l.refreshJSONFile {
 		if l.debug {
-			l.logger.Info("Downloading monster JSON file...")
+			slog.Info("Downloading monster JSON file...")
 		}
 		if err := l.downloadJSONFile(); err != nil {
 			if l.debug {
-				l.logger.Error("Failed to download monster JSON file.", slog.Any("error", err))
+				slog.Error("Failed to download monster JSON file.", slog.Any("error", err))
 			}
 			return nil, err
 		}
 		if l.debug {
-			l.logger.Info("Download monster JSON file successfully!")
+			slog.Info("Download monster JSON file successfully!")
 		}
 	}
 

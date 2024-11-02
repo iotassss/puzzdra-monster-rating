@@ -1,4 +1,4 @@
-package cli
+package app
 
 import (
 	"log/slog"
@@ -14,11 +14,7 @@ type App struct {
 	Debug bool
 }
 
-func NewApp(db *gorm.DB) *App {
-	return &App{DB: db}
-}
-
-func New20241019App(
+func New20241030App(
 	debug bool,
 ) (*App, error) {
 	// load .env
