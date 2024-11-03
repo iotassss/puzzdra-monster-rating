@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"os"
 
@@ -16,8 +15,9 @@ import (
 )
 
 const (
-	game8MonsterURLOutputFile = "data/game8_monster_urls"
-	makeMonsterRetryCount     = 3
+	game8MonsterURLOutputFile      = "data/game8_monster_urls"
+	makeMonsterRetryCount          = 3
+	makeGame8MonsterURLsRetryCount = 3
 )
 
 func main() {
@@ -108,54 +108,60 @@ func main() {
 
 	// execute
 	for i := 0; i < makeMonsterRetryCount; i++ {
-		app.Logger.Info("start createAllMonsterSourceData.Execute")
+		slog.Info("start createAllMonsterSourceData.Execute...")
 		err = createAllMonsterSourceData.Execute(ctx)
 		if err != nil {
-			app.Logger.Error("createAllMonsterSourceData.Execute failed", slog.Any("error", err))
+			slog.Error("createAllMonsterSourceData.Execute failed", slog.Any("error", err))
 			if i < makeMonsterRetryCount-1 {
-				app.Logger.Info("retry createAllMonsterSourceData.Execute")
+				slog.Info("retry createAllMonsterSourceData.Execute")
 				continue
 			}
+			// TODO: ここでエラーを管理者に通知する
+
 			return
 		}
-		app.Logger.Info("createAllMonsterSourceData.Execute succeeded")
+		slog.Info("createAllMonsterSourceData.Execute succeeded!")
 
-		// fmt.Printf("skip createAllMonsterSourceData.Execute %v\n", createAllMonsterSourceData)
-
-		app.Logger.Info("start createAllMonsters.Execute")
+		slog.Info("start createAllMonsters.Execute...")
 		err = createAllMonsters.Execute(ctx)
 		if err != nil {
-			app.Logger.Error("createAllMonsters.Execute failed", slog.Any("error", err))
+			slog.Error("createAllMonsters.Execute failed", slog.Any("error", err))
 			if i < makeMonsterRetryCount-1 {
-				app.Logger.Info("retry createAllMonsters.Execute")
+				slog.Info("retry createAllMonsters.Execute")
 				continue
 			}
+			// TODO: ここでエラーを管理者に通知する
+
 			return
 		}
-		app.Logger.Info("createAllMonsters.Execute succeeded")
-
-		fmt.Printf("skip createAllMonsters.Execute %v\n", createAllMonsters)
+		slog.Info("createAllMonsters.Execute succeeded!")
 
 		break
 	}
 
-	app.Logger.Info("start selectGame8MonsterURLs.Execute")
-	err = game8MonsterURLScraper.Fetch(ctx)
+	for i := 0; i < makeGame8MonsterURLsRetryCount; i++ {
+		slog.Info("start selectGame8MonsterURLs.Execute...")
+		err = game8MonsterURLScraper.Fetch(ctx)
+		if err != nil {
+			slog.Error("game8MonsterURLScraper.Fetch failed", slog.Any("error", err))
+			if i < makeGame8MonsterURLsRetryCount-1 {
+				slog.Info("retry game8MonsterURLScraper.Fetch")
+				continue
+			}
+			// TODO: ここでエラーを管理者に通知する
+
+			return
+		}
+		slog.Info("game8MonsterURLScraper.Fetch succeeded!")
+	}
+
+	slog.Info("start createAllGame8Monsters.Execute...")
+	err = createAllGame8Monsters.Execute(ctx)
 	if err != nil {
-		app.Logger.Error("game8MonsterURLScraper.Fetch failed", slog.Any("error", err))
+		slog.Error("createAllGame8Monsters.Execute failed", slog.Any("error", err))
+		// TODO: ここでエラーを管理者に通知する
+
 		return
 	}
-	app.Logger.Info("game8MonsterURLScraper.Fetch succeeded")
-
-	// fmt.Printf("skip game8MonsterURLScraper.Fetch %v\n", game8MonsterURLScraper)
-
-	// app.Logger.Info("start createAllGame8Monsters.Execute")
-	// err = createAllGame8Monsters.Execute(ctx)
-	// if err != nil {
-	// 	app.Logger.Error("createAllGame8Monsters.Execute failed", slog.Any("error", err))
-	// 	return
-	// }
-	// app.Logger.Info("createAllGame8Monsters.Execute succeeded")
-
-	fmt.Printf("skip createAllGame8Monsters.Execute %v\n", createAllGame8Monsters)
+	slog.Info("createAllGame8Monsters.Execute succeeded!")
 }

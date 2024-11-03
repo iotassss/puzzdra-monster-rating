@@ -2,9 +2,11 @@ package repository
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/iotassss/puzzdra-monster-rating/internal/domain/model/entity"
 	"github.com/iotassss/puzzdra-monster-rating/internal/domain/model/vo"
+	"github.com/iotassss/puzzdra-monster-rating/internal/infrastructure/stacktrace"
 	"gorm.io/gorm"
 )
 
@@ -41,11 +43,13 @@ func (r *Game8MonsterRepository) FindByNo(ctx context.Context, no vo.No) (*entit
 		if err == gorm.ErrRecordNotFound {
 			return nil, nil
 		}
+		slog.Error("failed to find game8 monster by no", slog.Any("error", err), slog.String("stacktrace", stacktrace.Print()))
 		return nil, err
 	}
 
 	game8Monster, err := r.convertToEntity(gormGame8Monster)
 	if err != nil {
+		slog.Error("failed to convert gorm game8 monster to entity", slog.Any("error", err), slog.String("stacktrace", stacktrace.Print()))
 		return nil, err
 	}
 
@@ -60,6 +64,7 @@ func (r *Game8MonsterRepository) Exists(ctx context.Context, no vo.No) (bool, er
 		if err == gorm.ErrRecordNotFound {
 			return false, nil
 		}
+		slog.Error("failed to check if game8 monster exists", slog.Any("error", err), slog.String("stacktrace", stacktrace.Print()))
 		return false, err
 	}
 
@@ -89,12 +94,14 @@ func (r *Game8MonsterRepository) Save(ctx context.Context, game8Monster *entity.
 		if err := r.db.WithContext(ctx).
 			Where("origin_monster_no = ?", game8Monster.OriginMonsterNo().Value()).
 			First(&gormGame8Monster).Error; err != nil {
+			slog.Error("failed to find game8 monster by no", slog.Any("error", err), slog.String("stacktrace", stacktrace.Print()))
 			return err
 		}
 
 		if err := r.db.WithContext(ctx).
 			Where("game8_monster_id = ?", gormGame8Monster.ID).
 			Delete(&gormGame8Monster.Scores).Error; err != nil {
+			slog.Error("failed to delete game8 monster scores", slog.Any("error", err), slog.String("stacktrace", stacktrace.Print()))
 			return err
 		}
 
@@ -102,6 +109,7 @@ func (r *Game8MonsterRepository) Save(ctx context.Context, game8Monster *entity.
 		gormGame8Monster.Scores = scores
 
 		if err := r.db.WithContext(ctx).Save(&gormGame8Monster).Error; err != nil {
+			slog.Error("failed to save game8 monster", slog.Any("error", err), slog.String("stacktrace", stacktrace.Print()))
 			return err
 		}
 	} else {
@@ -112,11 +120,13 @@ func (r *Game8MonsterRepository) Save(ctx context.Context, game8Monster *entity.
 		}
 
 		if err := r.db.WithContext(ctx).Create(&gormGame8Monster).Error; err != nil {
+			slog.Error("failed to create game8 monster", slog.Any("error", err), slog.String("stacktrace", stacktrace.Print()))
 			return err
 		}
 
 		assignedId, err := vo.NewID(int(gormGame8Monster.ID))
 		if err != nil {
+			slog.Error("failed to create ID", slog.Any("error", err), slog.String("stacktrace", stacktrace.Print()))
 			return err
 		}
 		game8Monster.SetID(assignedId)

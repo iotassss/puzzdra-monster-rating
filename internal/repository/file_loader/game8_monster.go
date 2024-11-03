@@ -3,9 +3,11 @@ package loader
 import (
 	"bufio"
 	"context"
+	"log/slog"
 	"os"
 
 	"github.com/iotassss/puzzdra-monster-rating/internal/domain/model/vo"
+	"github.com/iotassss/puzzdra-monster-rating/internal/infrastructure/stacktrace"
 )
 
 type Game8MonsterURLLoader struct {
@@ -33,6 +35,7 @@ func (l *Game8MonsterURLLoader) LoadAll(ctx context.Context) ([]vo.URL, error) {
 
 	file, err := os.Open(l.urlListFilePath)
 	if err != nil {
+		slog.Error("failed to open file", slog.Any("error", err), slog.String("stacktrace", stacktrace.Print()))
 		return nil, err
 	}
 	defer file.Close()
@@ -46,6 +49,7 @@ func (l *Game8MonsterURLLoader) LoadAll(ctx context.Context) ([]vo.URL, error) {
 
 	// ファイルの先頭に戻る
 	if _, err := file.Seek(0, 0); err != nil {
+		slog.Error("failed to seek file", slog.Any("error", err), slog.String("stacktrace", stacktrace.Print()))
 		return nil, err
 	}
 
@@ -57,6 +61,7 @@ func (l *Game8MonsterURLLoader) LoadAll(ctx context.Context) ([]vo.URL, error) {
 	for scanner.Scan() {
 		url, err := vo.NewURL(scanner.Text())
 		if err != nil {
+			slog.Error("failed to create URL", slog.Any("error", err), slog.String("stacktrace", stacktrace.Print()))
 			return nil, err
 		}
 		urls = append(urls, url)

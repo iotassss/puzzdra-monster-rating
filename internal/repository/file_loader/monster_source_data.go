@@ -11,6 +11,7 @@ import (
 
 	"github.com/iotassss/puzzdra-monster-rating/internal/domain/model/entity"
 	"github.com/iotassss/puzzdra-monster-rating/internal/domain/model/vo"
+	"github.com/iotassss/puzzdra-monster-rating/internal/infrastructure/stacktrace"
 )
 
 type MonsterSourceData struct {
@@ -66,18 +67,12 @@ jsonファイルの形式は以下のフィールドを持つオブジェクト�
 */
 func (l *MonsterSourceDataLoader) LoadAll(ctx context.Context) ([]*entity.MonsterSourceData, error) {
 	if l.refreshJSONFile {
-		if l.debug {
-			slog.Info("Downloading monster JSON file...")
-		}
+		slog.Info("Downloading monster JSON file...")
 		if err := l.downloadJSONFile(); err != nil {
-			if l.debug {
-				slog.Error("Failed to download monster JSON file.", slog.Any("error", err))
-			}
+			slog.Error("Failed to download monster JSON file.", slog.Any("error", err), slog.String("stackTrace", stacktrace.Print()))
 			return nil, err
 		}
-		if l.debug {
-			slog.Info("Download monster JSON file successfully!")
-		}
+		slog.Info("Download monster JSON file successfully!")
 	}
 
 	// filePathからデータをstreamで1オブジェクトずつ読み込む
@@ -85,6 +80,7 @@ func (l *MonsterSourceDataLoader) LoadAll(ctx context.Context) ([]*entity.Monste
 
 	file, err := os.Open(l.monsterJSONFilePath)
 	if err != nil {
+		slog.Error("Failed to open JSON file.", slog.Any("error", err), slog.String("stackTrace", stacktrace.Print()))
 		return nil, err
 	}
 	defer file.Close()
@@ -93,6 +89,7 @@ func (l *MonsterSourceDataLoader) LoadAll(ctx context.Context) ([]*entity.Monste
 
 	// JSONが配列の形式であるか確認する
 	if _, err := decoder.Token(); err != nil {
+		slog.Error("Failed to decode JSON file. JSON file is not an array.", slog.Any("error", err), slog.String("stackTrace", stacktrace.Print()))
 		return nil, err
 	}
 
@@ -102,11 +99,13 @@ func (l *MonsterSourceDataLoader) LoadAll(ctx context.Context) ([]*entity.Monste
 	for decoder.More() {
 		var jsonMonster MonsterSourceData
 		if err := decoder.Decode(&jsonMonster); err != nil {
+			slog.Error("Failed to decode JSON file.", slog.Any("error", err), slog.String("stackTrace", stacktrace.Print()))
 			return nil, err
 		}
 
 		monster, err := l.convertToEntity(jsonMonster)
 		if err != nil {
+			slog.Error("Failed to convert JSON to entity.", slog.Any("error", err), slog.String("stackTrace", stacktrace.Print()))
 			return nil, err
 		}
 
@@ -115,6 +114,7 @@ func (l *MonsterSourceDataLoader) LoadAll(ctx context.Context) ([]*entity.Monste
 
 	// JSON配列の終了を確認する
 	if _, err := decoder.Token(); err != nil {
+		slog.Error("Failed to decode JSON file. JSON file is not an array.", slog.Any("error", err), slog.String("stackTrace", stacktrace.Print()))
 		return nil, err
 	}
 

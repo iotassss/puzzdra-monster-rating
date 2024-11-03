@@ -46,12 +46,6 @@ func (uc *CreateAllGame8MonstersUsecaseInteractor) Execute(ctx context.Context) 
 	}
 
 	for _, url := range urls {
-		// for index, url := range urls {
-		// 	// デバッグのため3件までに制限
-		// 	if index > 2 {
-		// 		break
-		// 	}
-
 		game8MonsterSourceData, err := uc.game8MonsterSourceDataFetcher.Fetch(ctx, url)
 		if err != nil {
 			return err

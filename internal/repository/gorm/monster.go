@@ -3,9 +3,11 @@ package repository
 import (
 	"context"
 	"errors"
+	"log/slog"
 
 	"github.com/iotassss/puzzdra-monster-rating/internal/domain/model/entity"
 	"github.com/iotassss/puzzdra-monster-rating/internal/domain/model/vo"
+	"github.com/iotassss/puzzdra-monster-rating/internal/infrastructure/stacktrace"
 	"gorm.io/gorm"
 )
 
@@ -30,11 +32,13 @@ func (r *MonsterRepository) FindByNo(ctx context.Context, no vo.No) (*entity.Mon
 	if err := r.db.WithContext(ctx).
 		Where("no = ?", no.Value()).
 		First(&gormMonster).Error; err != nil {
+		slog.Error("failed to find monster by no", slog.Any("error", err), slog.String("stacktrace", stacktrace.Print()))
 		return nil, err
 	}
 
 	monster, err := r.convertToEntity(&gormMonster)
 	if err != nil {
+		slog.Error("failed to convert gorm monster to entity", slog.Any("error", err), slog.String("stacktrace", stacktrace.Print()))
 		return nil, err
 	}
 
@@ -49,6 +53,7 @@ func (r *MonsterRepository) Exists(ctx context.Context, no vo.No) (bool, error) 
 		if err == gorm.ErrRecordNotFound {
 			return false, nil
 		}
+		slog.Error("failed to find monster by no", slog.Any("error", err), slog.String("stacktrace", stacktrace.Print()))
 		return false, err
 	}
 
@@ -72,6 +77,7 @@ func (r *MonsterRepository) Save(ctx context.Context, monster *entity.Monster) e
 		if err := r.db.WithContext(ctx).
 			Where("no = ?", monster.No().Value()).
 			First(&gormMonster).Error; err != nil {
+			slog.Error("failed to find monster by no", slog.Any("error", err), slog.String("stacktrace", stacktrace.Print()))
 			return err
 		}
 
@@ -79,6 +85,7 @@ func (r *MonsterRepository) Save(ctx context.Context, monster *entity.Monster) e
 		gormMonster.OriginMonsterID = originMonsterID
 
 		if err := r.db.WithContext(ctx).Save(&gormMonster).Error; err != nil {
+			slog.Error("failed to save monster", slog.Any("error", err), slog.String("stacktrace", stacktrace.Print()))
 			return err
 		}
 	} else {
@@ -89,11 +96,13 @@ func (r *MonsterRepository) Save(ctx context.Context, monster *entity.Monster) e
 		}
 
 		if err := r.db.WithContext(ctx).Create(&gormMonster).Error; err != nil {
+			slog.Error("failed to create monster", slog.Any("error", err), slog.String("stacktrace", stacktrace.Print()))
 			return err
 		}
 
 		assignedID, err := vo.NewID(int(gormMonster.ID))
 		if err != nil {
+			slog.Error("failed to create ID", slog.Any("error", err), slog.String("stacktrace", stacktrace.Print()))
 			return err
 		}
 		monster.SetID(assignedID)

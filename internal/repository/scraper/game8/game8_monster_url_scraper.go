@@ -3,11 +3,13 @@ package scraper
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"os"
 	"regexp"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/gocolly/colly"
+	"github.com/iotassss/puzzdra-monster-rating/internal/infrastructure/stacktrace"
 )
 
 type Game8MonsterURLScraper struct {
@@ -44,6 +46,7 @@ func (scraper *Game8MonsterURLScraper) Fetch(ctx context.Context) error {
 		if scraper.debug {
 			fmt.Println("ファイル作成に失敗しました:", err)
 		}
+		slog.Error("failed to create file", slog.Any("error", err), slog.String("stacktrace", stacktrace.Print()))
 		return err
 	}
 	defer file.Close()

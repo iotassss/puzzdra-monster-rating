@@ -2,9 +2,11 @@ package repository
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/iotassss/puzzdra-monster-rating/internal/domain/model/entity"
 	"github.com/iotassss/puzzdra-monster-rating/internal/domain/model/vo"
+	"github.com/iotassss/puzzdra-monster-rating/internal/infrastructure/stacktrace"
 	"gorm.io/gorm"
 )
 
@@ -26,6 +28,7 @@ func NewMonsterSourceDataRepository(db *gorm.DB) *MonsterSourceDataRepository {
 func (r *MonsterSourceDataRepository) FindAll(ctx context.Context) ([]*entity.MonsterSourceData, error) {
 	var gormMonsterSourceDataList []*MonsterSourceData
 	if err := r.db.WithContext(ctx).Find(&gormMonsterSourceDataList).Error; err != nil {
+		slog.Error("failed to find all monster source data", slog.Any("error", err), slog.String("stacktrace", stacktrace.Print()))
 		return nil, err
 	}
 
@@ -33,6 +36,7 @@ func (r *MonsterSourceDataRepository) FindAll(ctx context.Context) ([]*entity.Mo
 	for _, gormMonsterSourceData := range gormMonsterSourceDataList {
 		monsterSourceData, err := r.convertToEntity(gormMonsterSourceData)
 		if err != nil {
+			slog.Error("failed to convert gorm monster source data to entity", slog.Any("error", err), slog.String("stacktrace", stacktrace.Print()))
 			return nil, err
 		}
 
@@ -45,10 +49,17 @@ func (r *MonsterSourceDataRepository) FindAll(ctx context.Context) ([]*entity.Mo
 func (r *MonsterSourceDataRepository) FindByNo(ctx context.Context, inputNo vo.No) (*entity.MonsterSourceData, error) {
 	var gormMonsterSourceData *MonsterSourceData
 	if err := r.db.WithContext(ctx).Where("no = ?", inputNo.Value()).First(&gormMonsterSourceData).Error; err != nil {
+		slog.Error("failed to find monster source data by no", slog.Any("error", err), slog.String("stacktrace", stacktrace.Print()))
 		return nil, err
 	}
 
-	return r.convertToEntity(gormMonsterSourceData)
+	monsterSourceData, err := r.convertToEntity(gormMonsterSourceData)
+	if err != nil {
+		slog.Error("failed to convert gorm monster source data to entity", slog.Any("error", err), slog.String("stacktrace", stacktrace.Print()))
+		return nil, err
+	}
+
+	return monsterSourceData, nil
 }
 
 func (r *MonsterSourceDataRepository) Exists(ctx context.Context, no vo.No) (bool, error) {
@@ -57,6 +68,7 @@ func (r *MonsterSourceDataRepository) Exists(ctx context.Context, no vo.No) (boo
 		if err == gorm.ErrRecordNotFound {
 			return false, nil
 		}
+		slog.Error("failed to check if monster source data exists", slog.Any("error", err), slog.String("stacktrace", stacktrace.Print()))
 		return false, err
 	}
 
@@ -75,6 +87,7 @@ func (r *MonsterSourceDataRepository) Save(ctx context.Context, monsterSourceDat
 		if err := r.db.WithContext(ctx).
 			Where("no = ?", monsterSourceData.No().Value()).
 			First(&gormMonsterSourceData).Error; err != nil {
+			slog.Error("failed to find monster source data by no", slog.Any("error", err), slog.String("stacktrace", stacktrace.Print()))
 			return err
 		}
 
@@ -88,6 +101,7 @@ func (r *MonsterSourceDataRepository) Save(ctx context.Context, monsterSourceDat
 		}
 
 		if err := r.db.WithContext(ctx).Save(&gormMonsterSourceData).Error; err != nil {
+			slog.Error("failed to save monster source data", slog.Any("error", err), slog.String("stacktrace", stacktrace.Print()))
 			return err
 		}
 	} else {
@@ -101,6 +115,7 @@ func (r *MonsterSourceDataRepository) Save(ctx context.Context, monsterSourceDat
 		}
 
 		if err := r.db.WithContext(ctx).Create(&gormMonsterSourceData).Error; err != nil {
+			slog.Error("failed to create monster source data", slog.Any("error", err), slog.String("stacktrace", stacktrace.Print()))
 			return err
 		}
 	}

@@ -13,6 +13,7 @@ import (
 	"github.com/gocolly/colly"
 	"github.com/iotassss/puzzdra-monster-rating/internal/domain/model/entity"
 	"github.com/iotassss/puzzdra-monster-rating/internal/domain/model/vo"
+	"github.com/iotassss/puzzdra-monster-rating/internal/infrastructure/stacktrace"
 )
 
 type Game8MonsterScraper struct {
@@ -166,13 +167,20 @@ func (s *Game8MonsterScraper) Fetch(ctx context.Context, url vo.URL) (*entity.Ga
 
 	err := c.Visit(url.Value().String())
 	if err != nil {
-		slog.Error("Failed to visit page", slog.String("url", url.Value().String()), slog.Any("error", err))
+		slog.Error("Failed to visit url", slog.String("url", url.Value().String()), slog.Any("error", err), slog.String("stacktrace", stacktrace.Print()))
+		return nil, err
+	}
+
+	// もしこの時点でresult.noが0ならばNoが取得できていないのでエラー
+	if result.no == 0 {
+		err := fmt.Errorf("Failed to scrape game8 monster")
+		slog.Warn("Failed to scrape game8 monster", slog.String("url", url.Value().String()), slog.Any("error", err), slog.String("stacktrace", stacktrace.Print()))
 		return nil, err
 	}
 
 	game8Monster, err := result.toEntity()
 	if err != nil {
-		slog.Error("Failed to convert scraping result to entity", slog.Any("error", err))
+		slog.Error("Failed to convert scraping result to entity", slog.Any("error", err), slog.String("stacktrace", stacktrace.Print()))
 		return nil, err
 	}
 

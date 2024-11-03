@@ -45,7 +45,7 @@ func (uc *CreateAllMonstersUsecaseInteractor) Execute(ctx context.Context) error
 		return err
 	}
 
-	// baseNoがnilのモンスターを優先で作成する
+	// それぞれのモンスターが起源モンスターに依存するので、baseNoがnilのモンスターを優先で作成する
 	for _, monsterSourceData := range monsterSourceDataList {
 		if monsterSourceData.BaseNo() == nil {
 			err = uc.makeAndSaveMonster(ctx, monsterSourceData)
