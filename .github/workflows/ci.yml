@@ -21,9 +21,9 @@ jobs:
 
       # Goのセットアップ
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
-          go-version: 1.23.2 # 最新のGoバージョンを指定
+          go-version: 1.23.x # 最新のGoバージョンを指定
 
       # 依存パッケージのインストール
       - name: Install dependencies
