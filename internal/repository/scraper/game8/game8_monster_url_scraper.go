@@ -74,7 +74,7 @@ func (scraper *Game8MonsterURLScraper) Fetch(ctx context.Context) error {
 				if exists {
 					file.WriteString(href + "\n")
 					if scraper.debug {
-						fmt.Printf("[%s](%s),", a.Text(), href)
+						// fmt.Printf("[%s](%s),", a.Text(), href)
 					}
 				}
 			})

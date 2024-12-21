@@ -45,6 +45,8 @@ func (uc *CreateAllMonstersUsecaseInteractor) Execute(ctx context.Context) error
 		return err
 	}
 
+	var index int
+
 	// それぞれのモンスターが起源モンスターに依存するので、baseNoがnilのモンスターを優先で作成する
 	for _, monsterSourceData := range monsterSourceDataList {
 		if monsterSourceData.BaseNo() == nil {
@@ -53,6 +55,10 @@ func (uc *CreateAllMonstersUsecaseInteractor) Execute(ctx context.Context) error
 				return err
 			}
 		}
+
+		// debug: 一時的に進捗バーを表示
+		index++
+		displayProgressBar(index, len(monsterSourceDataList)*2)
 	}
 
 	for _, monsterSourceData := range monsterSourceDataList {
@@ -60,6 +66,10 @@ func (uc *CreateAllMonstersUsecaseInteractor) Execute(ctx context.Context) error
 		if err != nil {
 			return err
 		}
+
+		// debug: 一時的に進捗バーを表示
+		index++
+		displayProgressBar(index, len(monsterSourceDataList)*2)
 	}
 
 	return uc.presenter.Present()
