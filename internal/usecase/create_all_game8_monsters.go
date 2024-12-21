@@ -45,7 +45,7 @@ func (uc *CreateAllGame8MonstersUsecaseInteractor) Execute(ctx context.Context) 
 		return err
 	}
 
-	for _, url := range urls {
+	for index, url := range urls {
 		game8MonsterSourceData, err := uc.game8MonsterSourceDataFetcher.Fetch(ctx, url)
 		if err != nil {
 			return err
@@ -77,6 +77,9 @@ func (uc *CreateAllGame8MonstersUsecaseInteractor) Execute(ctx context.Context) 
 				return err
 			}
 		}
+
+		// debug: 一時的に進捗バーを表示
+		displayProgressBar(index+1, len(urls))
 	}
 
 	return uc.presenter.Present()

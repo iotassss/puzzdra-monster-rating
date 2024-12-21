@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"os"
 
@@ -109,6 +110,8 @@ func main() {
 	// execute
 	for i := 0; i < makeMonsterRetryCount; i++ {
 		slog.Info("start createAllMonsterSourceData.Execute...")
+		fmt.Println("start createAllMonsterSourceData.Execute...")
+
 		err = createAllMonsterSourceData.Execute(ctx)
 		if err != nil {
 			slog.Error("createAllMonsterSourceData.Execute failed", slog.Any("error", err))
@@ -120,9 +123,13 @@ func main() {
 
 			return
 		}
+
 		slog.Info("createAllMonsterSourceData.Execute succeeded!")
+		fmt.Println("createAllMonsterSourceData.Execute succeeded!")
 
 		slog.Info("start createAllMonsters.Execute...")
+		fmt.Println("start createAllMonsters.Execute...")
+
 		err = createAllMonsters.Execute(ctx)
 		if err != nil {
 			slog.Error("createAllMonsters.Execute failed", slog.Any("error", err))
@@ -134,13 +141,20 @@ func main() {
 
 			return
 		}
+
 		slog.Info("createAllMonsters.Execute succeeded!")
+		fmt.Println("createAllMonsters.Execute succeeded!")
 
 		break
 	}
 
+	// _ = createAllMonsterSourceData
+	// _ = createAllMonsters
+
 	for i := 0; i < makeGame8MonsterURLsRetryCount; i++ {
 		slog.Info("start selectGame8MonsterURLs.Execute...")
+		fmt.Println("start selectGame8MonsterURLs.Execute...")
+
 		err = game8MonsterURLScraper.Fetch(ctx)
 		if err != nil {
 			slog.Error("game8MonsterURLScraper.Fetch failed", slog.Any("error", err))
@@ -152,10 +166,16 @@ func main() {
 
 			return
 		}
+
 		slog.Info("game8MonsterURLScraper.Fetch succeeded!")
+		fmt.Println("game8MonsterURLScraper.Fetch succeeded!")
+
+		break
 	}
 
 	slog.Info("start createAllGame8Monsters.Execute...")
+	fmt.Println("start createAllGame8Monsters.Execute...")
+
 	err = createAllGame8Monsters.Execute(ctx)
 	if err != nil {
 		slog.Error("createAllGame8Monsters.Execute failed", slog.Any("error", err))
@@ -163,5 +183,7 @@ func main() {
 
 		return
 	}
+
 	slog.Info("createAllGame8Monsters.Execute succeeded!")
+	fmt.Println("createAllGame8Monsters.Execute succeeded!")
 }

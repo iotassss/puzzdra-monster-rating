@@ -55,9 +55,9 @@ func (s *Game8MonsterScraper) Fetch(ctx context.Context, url vo.URL) (*entity.Ga
 	if !s.ignoreWait {
 		time.Sleep(time.Duration(s.waitSecond) * time.Second)
 	}
-	if s.debug {
-		fmt.Printf("%s\n", url.Value())
-	}
+	// if s.debug {
+	// 	fmt.Printf("%s\n", url.Value())
+	// }
 
 	result := &game8MonsterScrapingResult{
 		url: url.Value().String(),
